@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shukla Marriage Palace – Booking Manager</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Georgia', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', serif; background: #FFF8F0; min-height: 100vh; }
+
+    /* ── HEADER ── */
+    #header {
+      background: linear-gradient(135deg,#7C1D1D 0%,#991B1B 50%,#B45309 100%);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 4px 20px rgba(124,29,29,0.4);
+    }
+    #header-inner {
+      max-width: 900px; margin: 0 auto; padding: 13px 18px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    }
+    #logo { display: flex; align-items: center; gap: 10px; }
+    #logo-icon { font-size: 24px; }
+    #logo-title { color: #FDE68A; font-weight: bold; font-size: 15px; letter-spacing: 1px; }
+    #logo-sub   { color: #FCA572; font-size: 10px; letter-spacing: 2px; }
+    #nav { display: flex; gap: 5px; }
+    .nav-btn {
+      background: transparent; border: 1px solid transparent;
+      color: #FCA572; border-radius: 8px; padding: 6px 11px;
+      cursor: pointer; font-size: 12px; font-family: 'Georgia', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', serif;
+      transition: all .2s;
+    }
+    .nav-btn.active {
+      background: rgba(253,230,138,0.2); border-color: #FDE68A; color: #FDE68A;
+    }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; top: 76px; right: 18px; z-index: 9999;
+      color: #fff; padding: 11px 18px; border-radius: 10px;
+      font-family: 'Georgia', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', serif; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      font-size: 13px; display: none; transition: opacity .3s;
+    }
+
+    /* ── MAIN ── */
+    #main { max-width: 900px; margin: 0 auto; padding: 22px 15px; }
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── CARDS / STRIPS ── */
+    .strip { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .strip-card {
+      flex: 1; min-width: 130px; border-radius: 14px; padding: 14px 12px;
+      text-align: center;
+    }
+    .strip-card .sc-icon { font-size: 20px; margin-bottom: 3px; }
+    .strip-card .sc-val  { font-size: 20px; font-weight: bold; }
+    .strip-card .sc-lbl  { font-size: 10px; letter-spacing: 1px; margin-top: 2px; }
+
+    /* ── MONTH BLOCK ── */
+    #month-block {
+      background: #fff; border: 1px solid #F5D0A9; border-radius: 16px;
+      padding: 18px 18px 20px; margin-bottom: 18px;
+      box-shadow: 0 2px 12px rgba(124,29,29,0.07);
+    }
+    #month-nav {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+    }
+    .month-arrow {
+      background: #FFF7ED; border: 1px solid #FCA572; color: #C2410C;
+      border-radius: 9px; padding: 6px 16px; cursor: pointer;
+      font-family: 'Georgia', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', serif; font-size: 18px; line-height: 1;
+    }
+    #month-label-main { font-size: 19px; font-weight: bold; color: #7C1D1D; text-align: center; }
+    #month-label-year { font-size: 12px; color: #B45309; letter-spacing: 1px; text-align: center; }
+
+    .stat-grid {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 18px;
+    }
+    .stat-card {
+      border-radius: 11px; padding: 12px 8px; text-align: center;
+    }
+    .stat-card .s-icon { font-size: 20px; margin-bottom: 3px; }
+    .stat-card .s-val  { font-weight: bold; margin-bottom: 2px; line-height: 1.1; }
+    .stat-card .s-lbl  { font-size: 10px; color: #9A6C4A; letter-spacing: 0.5px; text-transform: uppercase; }
+
+    #month-bookings-label {
+      font-size: 11px; color: #9A6C4A; letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 10px; font-weight: bold; border-top: 1px solid #F5D0A9; padding-top: 14px;
+    }
+    #month-bookings-list {}
+
+    /* ── UPCOMING BLOCK ── */
+    #upcoming-block {
+      background: #fff; border: 1px solid #F5D0A9; border-radius: 16px;
+      padding: 16px 18px; box-shadow: 0 2px 12px rgba(124,29,29,0.07);
+    }
+    .block-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+    }
+    .block-header h3 { color: #7C1D1D; font-size: 14px; }
+    .link-btn {
+      background: none; border: none; color: #B45309; cursor: pointer;
+      font-size: 12px; text-decoration: underline; font-family: 'Georgia', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', serif;
+    }
+
+    /* ── BOOKING ROW ── */
+    .booking-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 11px; border-radius: 10px; margin-bottom: 8px;
+      flex-wrap: wrap; gap: 6px; border: 1px solid;
+    }
+    .booking-row .br-left  { display: flex; align-items: center; gap: 10px; }
+    .booking-row .br-badge {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 13px; flex-shrink: 0;
+    }
+    .booking-row .br-name  { font-weight: bold; color: #3D1A1A; font-size: 13px; }
+    .booking-row .br-sub   { font-size: 11px; color: #7A4A2A; }
+    .booking-row .br-right { text-align: right; }
+    .booking-row .br-price { font-weight: bold; color: #7C1D1D; font-size: 13px; }
+    .status-pill {
+      border-radius: 5px; padding: 1px 7px; font-size: 10px; color: #fff; display: inline-block;
+    }
+
+    /* ── FORM ── */
+    #form-view {
+      background: #fff; border: 1px solid #F5D0A9; border-radius: 18px;
+      padding: 26px 22px; box-shadow: 0 4px 20px rgba(124,29,29,0.08);
+    }
+    #form-title-area { text-align: center; margin-bottom: 22px; }
+    #form-title-area .f-icon { font-size: 28px; margin-bottom: 5px; }
+    #form-title-area h2 { color: #7C1D1D; font-size: 21px; }
+    #form-title-area p  { color: #C4956A; font-size: 12px; margin-top: 3px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    label.field-label {
+      display: block; font-size: 11px; color: #9A6C4A; margin-bottom: 5px;
+      font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    input, select, textarea {
+      width: 100%; border: 1px solid #F5D0A9; border-radius: 10px; padding: 10px 13px;
+      font-size: 14px; color: #3D1A1A; background: #FFFDF9; outline: none;
+      font-family: 'Georgia', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', serif; box-sizing: border-box;
+    }
+    textarea { resize: vertical; }
+
+    /* services dropdown */
+    .svc-wrap { position: relative; }
+    #svc-dropdown {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: #fff; border: 1px solid #F5D0A9; border-radius: 10px;
+      z-index: 50; max-height: 170px; overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(124,29,29,0.12); display: none;
+    }
+    #svc-dropdown.open { display: block; }
+    .svc-option {
+      padding: 8px 13px; cursor: pointer; font-size: 13px;
+      color: #4A2020; border-bottom: 1px solid #FEF3C7;
+    }
+    .svc-option:hover { background: #FFF7ED; }
+    #selected-services { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+    .svc-tag {
+      background: #FFF7ED; border: 1px solid #FCA572; color: #C2410C;
+      border-radius: 20px; padding: 3px 11px; font-size: 12px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .svc-remove { cursor: pointer; font-weight: bold; color: #DC2626; }
+
+    /* balance bar */
+    #balance-bar {
+      background: #FFF7ED; border: 1px solid #FCA572; border-radius: 10px;
+      padding: 11px 15px; margin-top: 14px;
+      display: none; justify-content: space-between; flex-wrap: wrap; gap: 7px;
+    }
+    #balance-bar.show { display: flex; }
+    #balance-bar span { font-size: 13px; color: #7A4A2A; }
+
+    .form-btns { display: flex; gap: 11px; margin-top: 22px; }
+    #save-btn {
+      flex: 1; background: linear-gradient(135deg,#7C1D1D,#B45309);
+      color: #FDE68A; border: none; border-radius: 10px; padding: 13px;
+      font-weight: bold; font-size: 15px; cursor: pointer; font-family: 'Georgia', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', serif;
+    }
+    #cancel-btn {
+      background: #FFF7ED; border: 1px solid #FCA572; color: #C2410C;
+      border-radius: 10px; padding: 13px 18px; cursor: pointer; font-family: 'Georgia', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', serif;
+    }
+
+    /* ── LIST VIEW ── */
+    #list-view h2 { color: #7C1D1D; font-size: 21px; margin-bottom: 14px; }
+    .list-filters { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 14px; }
+    .list-filters input  { flex: 1; min-width: 190px; }
+    .list-filters select { width: auto; }
+
+    .booking-card {
+      background: #fff; border-radius: 13px; padding: 15px 17px;
+      margin-bottom: 12px; box-shadow: 0 2px 10px rgba(124,29,29,0.06);
+      border-left: 5px solid; border-top: 1px solid; border-right: 1px solid; border-bottom: 1px solid;
+    }
+    .bc-inner { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 7px; }
+    .bc-left  { flex: 1; }
+    .bc-right { text-align: right; min-width: 115px; }
+    .bc-name  { font-weight: bold; font-size: 16px; color: #3D1A1A; }
+    .bc-sub   { font-size: 12px; color: #7A4A2A; margin-bottom: 7px; }
+    .bc-tags  { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 7px; }
+    .svc-pill {
+      background: #FFF7ED; border: 1px solid #FCA572; color: #C2410C;
+      border-radius: 11px; padding: 2px 7px; font-size: 11px;
+    }
+    .bc-notes { font-size: 12px; color: #9A6C4A; font-style: italic; }
+    .bc-price { font-weight: bold; color: #7C1D1D; font-size: 17px; }
+    .bc-adv   { font-size: 12px; color: #15803D; }
+    .bc-due   { font-size: 12px; color: #DC2626; font-weight: bold; }
+    .bc-actions { display: flex; gap: 5px; margin-top: 7px; justify-content: flex-end; }
+    .bc-actions button {
+      border-radius: 7px; padding: 4px 9px; cursor: pointer; font-size: 12px;
+      font-family: 'Georgia', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', serif;
+    }
+    .edit-btn   { background: #FFF7ED; border: 1px solid #FCA572; color: #C2410C; }
+    .delete-btn { background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; }
+
+    .empty-state {
+      text-align: center; padding: 55px 20px; color: #C4956A;
+      background: #fff; border-radius: 16px; border: 1px solid #F5D0A9;
+    }
+    .empty-state .es-icon { font-size: 38px; margin-bottom: 10px; }
+
+    /* ── FOOTER ── */
+    #footer {
+      text-align: center; padding: 18px; color: #C4956A; font-size: 12px;
+      border-top: 1px solid #F5D0A9; margin-top: 16px;
+    }
+
+    /* ── DASHBOARD header ── */
+    #dash-header { text-align: center; margin-bottom: 20px; }
+    #dash-header .d-sub { font-size: 11px; color: #B45309; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 3px; }
+    #dash-header h2     { color: #7C1D1D; font-size: 22px; }
+
+    /* responsive */
+    @media(max-width:520px){
+      .stat-grid { grid-template-columns: repeat(2,1fr); }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+      .strip-card .sc-val { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div id="header">
+  <div id="header-inner">
+    <div id="logo">
+      <div id="logo-icon">🏛️</div>
+      <div>
+        <div id="logo-title">SHUKLA MARRIAGE PALACE</div>
+        <div id="logo-sub">THOTHARI, SIDDHARTHNAGAR • UP</div>
+      </div>
+    </div>
+    <nav id="nav">
+      <button class="nav-btn active" data-view="dashboard">🏠 Home</button>
+      <button class="nav-btn"        data-view="list">📋 Bookings</button>
+      <button class="nav-btn"        data-view="add">➕ Add</button>
+    </nav>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div id="toast"></div>
+
+<!-- ══ MAIN ══ -->
+<div id="main">
+
+  <!-- DASHBOARD -->
+  <div id="dashboard-view" class="view active">
+    <div id="dash-header">
+      <div class="d-sub">Booking Management</div>
+      <h2>Palace Overview</h2>
+    </div>
+
+    <!-- all-time strip -->
+    <div class="strip" id="alltime-strip">
+      <div class="strip-card" style="background:linear-gradient(135deg,#7C1D1D,#991B1B);color:#FDE68A;">
+        <div class="sc-icon">📅</div>
+        <div class="sc-val" id="at-total">0</div>
+        <div class="sc-lbl" style="color:#FCA572;">ALL-TIME BOOKINGS</div>
+      </div>
+      <div class="strip-card" style="background:linear-gradient(135deg,#B45309,#D97706);color:#FDE68A;">
+        <div class="sc-icon">💰</div>
+        <div class="sc-val" id="at-revenue">₹0</div>
+        <div class="sc-lbl" style="color:#FEF3C7;">TOTAL REVENUE</div>
+      </div>
+      <div class="strip-card" style="background:linear-gradient(135deg,#1D4ED8,#2563EB);color:#fff;">
+        <div class="sc-icon">🔜</div>
+        <div class="sc-val" id="at-pending">0</div>
+        <div class="sc-lbl" style="color:#BFDBFE;">PENDING EVENTS</div>
+      </div>
+    </div>
+
+    <!-- Month block -->
+    <div id="month-block">
+      <div id="month-nav">
+        <button class="month-arrow" id="prev-month">&#8249;</button>
+        <div>
+          <div id="month-label-main">May</div>
+          <div id="month-label-year">2026</div>
+        </div>
+        <button class="month-arrow" id="next-month">&#8250;</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card" style="background:#FFF0F0;border:1px solid #FECACA;">
+          <div class="s-icon">📅</div>
+          <div class="s-val" id="m-total" style="font-size:19px;color:#7C1D1D;">0</div>
+          <div class="s-lbl">Total</div>
+        </div>
+        <div class="stat-card" style="background:#FFF7ED;border:1px solid #FED7AA;">
+          <div class="s-icon">🔜</div>
+          <div class="s-val" id="m-upcoming" style="font-size:19px;color:#C2410C;">0</div>
+          <div class="s-lbl">Upcoming</div>
+        </div>
+        <div class="stat-card" style="background:#F0FDF4;border:1px solid #BBF7D0;">
+          <div class="s-icon">✅</div>
+          <div class="s-val" id="m-completed" style="font-size:19px;color:#15803D;">0</div>
+          <div class="s-lbl">Done</div>
+        </div>
+        <div class="stat-card" style="background:#EFF6FF;border:1px solid #BFDBFE;">
+          <div class="s-icon">💰</div>
+          <div class="s-val" id="m-revenue" style="font-size:13px;color:#1D4ED8;">₹0</div>
+          <div class="s-lbl">Revenue</div>
+        </div>
+      </div>
+
+      <div id="month-bookings-label">📋 <span id="month-bookings-title">Bookings</span></div>
+      <div id="month-bookings-list"></div>
+    </div>
+
+    <!-- Upcoming all -->
+    <div id="upcoming-block">
+      <div class="block-header">
+        <h3>🔜 All Upcoming Bookings</h3>
+        <button class="link-btn" onclick="setView('list')">View All</button>
+      </div>
+      <div id="upcoming-list"></div>
+    </div>
+  </div><!-- /dashboard -->
+
+  <!-- ADD / EDIT -->
+  <div id="add-view" class="view">
+    <div id="form-view">
+      <div id="form-title-area">
+        <div class="f-icon">📋</div>
+        <h2 id="form-heading">New Booking</h2>
+        <p>Fill in the event details below</p>
+      </div>
+
+      <input type="hidden" id="f-id" value="">
+
+      <div class="form-grid">
+        <div class="full">
+          <label class="field-label">👤 Customer Name *</label>
+          <input type="text" id="f-name" placeholder="Enter customer full name">
+        </div>
+        <div>
+          <label class="field-label">📞 Phone Number</label>
+          <input type="tel" id="f-phone" placeholder="Mobile number">
+        </div>
+        <div>
+          <label class="field-label">🎊 Event Type</label>
+          <select id="f-event">
+            <option>Wedding</option><option>Engagement</option><option>Reception</option>
+            <option>Birthday</option><option>Anniversary</option><option>Mundan</option>
+            <option>Tilak</option><option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">📅 Event Date *</label>
+          <input type="date" id="f-date">
+        </div>
+        <div>
+          <label class="field-label">💰 Total Price (₹) *</label>
+          <input type="number" id="f-price" placeholder="e.g. 75000">
+        </div>
+        <div>
+          <label class="field-label">💳 Advance Paid (₹)</label>
+          <input type="number" id="f-advance" placeholder="e.g. 25000">
+        </div>
+        <div class="full">
+          <label class="field-label">🌸 Services Included</label>
+          <div class="svc-wrap">
+            <input type="text" id="svc-input" placeholder="Type to search and add services..." autocomplete="off">
+            <div id="svc-dropdown"></div>
+          </div>
+          <div id="selected-services"></div>
+        </div>
+        <div class="full">
+          <label class="field-label">📝 Notes / Special Requirements</label>
+          <textarea id="f-notes" rows="3" placeholder="Any special notes..."></textarea>
+        </div>
+      </div>
+
+      <div id="balance-bar">
+        <span>Total: <b id="bb-total" style="color:#7C1D1D;"></b></span>
+        <span>Advance: <b id="bb-adv" style="color:#15803D;"></b></span>
+        <span>Balance Due: <b id="bb-due" style="color:#DC2626;"></b></span>
+      </div>
+
+      <div class="form-btns">
+        <button id="save-btn" onclick="saveBooking()">✅ Save Booking</button>
+        <button id="cancel-btn" onclick="cancelForm()">Cancel</button>
+      </div>
+    </div>
+  </div><!-- /add -->
+
+  <!-- LIST -->
+  <div id="list-view" class="view">
+    <h2>📋 All Bookings</h2>
+    <div class="list-filters">
+      <input type="text" id="search-input" placeholder="🔍 Search by name or phone...">
+      <select id="status-filter">
+        <option value="all">All Status</option>
+        <option value="upcoming">Upcoming</option>
+        <option value="today">Today</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div id="bookings-list"></div>
+  </div><!-- /list -->
+
+</div><!-- /main -->
+
+<div id="footer">🏛️ Shukla Marriage Palace • Thothari, Siddharthnagar, UP</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA & CONSTANTS
+// ══════════════════════════════════════════════
+const SERVICES = [
+  "Full Decoration","Stage Setup","Floral Arrangement","Lighting Package",
+  "Catering (Veg)","Catering (Non-Veg)","DJ & Sound System","Baraat Band",
+  "Photography","Videography","Drone Coverage","Mehendi Setup",
+  "Bridal Room","Parking Management","Generator Backup","Security Staff",
+  "Tent House","Fireworks","Welcome Gate","Horse/Rath Booking"
+];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+const SC = {
+  upcoming:  { bg:"#FFF7ED", border:"#FED7AA", badge:"#EA580C" },
+  today:     { bg:"#FFFBEB", border:"#FDE68A", badge:"#D97706" },
+  completed: { bg:"#F0FDF4", border:"#BBF7D0", badge:"#16A34A" },
+};
+
+let bookings = [];
+try { bookings = JSON.parse(localStorage.getItem("smp_bookings") || "[]"); } catch(e){}
+
+let selectedServices = [];
+let editingId = null;
+const now = new Date();
+let selMonth = now.getMonth();
+let selYear  = now.getFullYear();
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function saveToStorage(){ localStorage.setItem("smp_bookings", JSON.stringify(bookings)); }
+
+function formatDate(d){
+  if(!d) return "";
+  return new Date(d).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+}
+
+function getStatus(dateStr){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const bDate = new Date(dateStr); bDate.setHours(0,0,0,0);
+  if(bDate < today) return "completed";
+  if(bDate.getTime() === today.getTime()) return "today";
+  return "upcoming";
+}
+
+function fmt(n){ return parseFloat(n||0).toLocaleString("en-IN"); }
+
+function showToast(msg, type){
+  const t = document.getElementById("toast");
+  t.style.background = type==="success" ? "#15803D" : type==="error" ? "#DC2626" : "#1D4ED8";
+  t.textContent = (type==="success"?"✅ ":type==="error"?"❌ ":"ℹ️ ") + msg;
+  t.style.display = "block";
+  setTimeout(()=>{ t.style.display="none"; }, 2800);
+}
+
+// ══════════════════════════════════════════════
+//  VIEW SWITCHING
+// ══════════════════════════════════════════════
+function setView(name){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById(name+"-view").classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach(b=>{
+    b.classList.toggle("active", b.dataset.view===name);
+  });
+  if(name==="add" && editingId===null) resetForm();
+  if(name==="dashboard") renderDashboard();
+  if(name==="list") renderList();
+}
+
+document.querySelectorAll(".nav-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    if(btn.dataset.view==="add") editingId=null;
+    setView(btn.dataset.view);
+  });
+});
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard(){
+  // all-time
+  const allRev = bookings.reduce((s,b)=>s+(parseFloat(b.totalPrice)||0),0);
+  const pend   = bookings.filter(b=>{ const s=getStatus(b.date); return s==="upcoming"||s==="today"; });
+  document.getElementById("at-total").textContent   = bookings.length;
+  document.getElementById("at-revenue").textContent = "₹"+fmt(allRev);
+  document.getElementById("at-pending").textContent = pend.length;
+
+  // month label
+  document.getElementById("month-label-main").textContent = MONTHS[selMonth];
+  document.getElementById("month-label-year").textContent = selYear;
+
+  // month bookings
+  const mb = bookings.filter(b=>{
+    const d=new Date(b.date); return d.getMonth()===selMonth && d.getFullYear()===selYear;
+  }).sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  const mRev  = mb.reduce((s,b)=>s+(parseFloat(b.totalPrice)||0),0);
+  const mUp   = mb.filter(b=>{ const s=getStatus(b.date); return s==="upcoming"||s==="today"; }).length;
+  const mDone = mb.filter(b=>getStatus(b.date)==="completed").length;
+
+  document.getElementById("m-total").textContent     = mb.length;
+  document.getElementById("m-upcoming").textContent  = mUp;
+  document.getElementById("m-completed").textContent = mDone;
+  const rv = document.getElementById("m-revenue");
+  const rs = "₹"+fmt(mRev);
+  rv.textContent  = rs;
+  rv.style.fontSize = rs.length > 8 ? "12px" : "19px";
+
+  document.getElementById("month-bookings-title").textContent = MONTHS[selMonth]+" "+selYear+" — Bookings";
+
+  const mbl = document.getElementById("month-bookings-list");
+  if(mb.length===0){
+    mbl.innerHTML = `<div style="text-align:center;padding:16px 0;color:#C4956A;font-size:13px;">No bookings in ${MONTHS[selMonth]} ${selYear}</div>`;
+  } else {
+    mbl.innerHTML = mb.map(b=>bookingRowHTML(b,true)).join("");
+  }
+
+  // upcoming all
+  const upList = document.getElementById("upcoming-list");
+  const ups = bookings
+    .filter(b=>{ const s=getStatus(b.date); return s==="upcoming"||s==="today"; })
+    .sort((a,b)=>new Date(a.date)-new Date(b.date))
+    .slice(0,6);
+  if(ups.length===0){
+    upList.innerHTML = `<div style="text-align:center;padding:20px 0;color:#C4956A;font-size:13px;">No upcoming bookings 🎊</div>`;
+  } else {
+    upList.innerHTML = ups.map(b=>bookingRowHTML(b,false)).join("");
+  }
+}
+
+function bookingRowHTML(b, compact){
+  const st = getStatus(b.date);
+  const sc = SC[st];
+  const icon = st==="completed"?"✅":st==="today"?"⭐":"🔜";
+  const pill = st==="completed"?"DONE":st==="today"?"TODAY":"UPCOMING";
+  const p = compact?"9px 11px":"11px 13px";
+  return `
+  <div class="booking-row" style="background:${sc.bg};border-color:${sc.border};padding:${p};">
+    <div class="br-left">
+      <div class="br-badge" style="background:${sc.badge};">${icon}</div>
+      <div>
+        <div class="br-name">${b.customerName}</div>
+        <div class="br-sub">${b.eventType} • ${formatDate(b.date)}</div>
+      </div>
+    </div>
+    <div class="br-right">
+      <div class="br-price">₹${fmt(b.totalPrice)}</div>
+      <span class="status-pill" style="background:${sc.badge};">${pill}</span>
+    </div>
+  </div>`;
+}
+
+// Month navigation
+document.getElementById("prev-month").addEventListener("click",()=>{
+  if(selMonth===0){selMonth=11;selYear--;} else selMonth--;
+  renderDashboard();
+});
+document.getElementById("next-month").addEventListener("click",()=>{
+  if(selMonth===11){selMonth=0;selYear++;} else selMonth++;
+  renderDashboard();
+});
+
+// ══════════════════════════════════════════════
+//  ADD / EDIT FORM
+// ══════════════════════════════════════════════
+function resetForm(){
+  document.getElementById("f-id").value      = "";
+  document.getElementById("f-name").value    = "";
+  document.getElementById("f-phone").value   = "";
+  document.getElementById("f-event").value   = "Wedding";
+  document.getElementById("f-date").value    = "";
+  document.getElementById("f-price").value   = "";
+  document.getElementById("f-advance").value = "";
+  document.getElementById("f-notes").value   = "";
+  selectedServices = [];
+  renderSelectedServices();
+  document.getElementById("svc-input").value = "";
+  document.getElementById("svc-dropdown").classList.remove("open");
+  document.getElementById("balance-bar").classList.remove("show");
+  document.getElementById("form-heading").textContent = "New Booking";
+  document.getElementById("save-btn").textContent = "✅ Save Booking";
+  editingId = null;
+}
+
+function cancelForm(){ editingId=null; resetForm(); setView("dashboard"); }
+
+function populateForm(b){
+  editingId = b.id;
+  document.getElementById("f-id").value      = b.id;
+  document.getElementById("f-name").value    = b.customerName;
+  document.getElementById("f-phone").value   = b.phone||"";
+  document.getElementById("f-event").value   = b.eventType;
+  document.getElementById("f-date").value    = b.date;
+  document.getElementById("f-price").value   = b.totalPrice||"";
+  document.getElementById("f-advance").value = b.advance||"";
+  document.getElementById("f-notes").value   = b.notes||"";
+  selectedServices = [...(b.services||[])];
+  renderSelectedServices();
+  document.getElementById("form-heading").textContent = "Edit Booking";
+  document.getElementById("save-btn").textContent = "💾 Update Booking";
+  updateBalanceBar();
+}
+
+function saveBooking(){
+  const name  = document.getElementById("f-name").value.trim();
+  const date  = document.getElementById("f-date").value;
+  const price = document.getElementById("f-price").value;
+  if(!name||!date||!price){ showToast("Please fill Name, Date and Price!","error"); return; }
+
+  const booking = {
+    id:           editingId || Date.now(),
+    customerName: name,
+    phone:        document.getElementById("f-phone").value,
+    eventType:    document.getElementById("f-event").value,
+    date:         date,
+    totalPrice:   price,
+    advance:      document.getElementById("f-advance").value,
+    notes:        document.getElementById("f-notes").value,
+    services:     [...selectedServices],
+  };
+
+  if(editingId){
+    bookings = bookings.map(b=>b.id===editingId ? booking : b);
+    showToast("Booking updated!","success");
+  } else {
+    bookings.push(booking);
+    showToast("Booking added successfully!","success");
+  }
+  saveToStorage();
+  resetForm();
+  setView("list");
+}
+
+// Balance bar
+function updateBalanceBar(){
+  const price = parseFloat(document.getElementById("f-price").value)||0;
+  const adv   = parseFloat(document.getElementById("f-advance").value)||0;
+  const bar   = document.getElementById("balance-bar");
+  if(price>0){
+    bar.classList.add("show");
+    document.getElementById("bb-total").textContent = "₹"+fmt(price);
+    document.getElementById("bb-adv").textContent   = "₹"+fmt(adv);
+    document.getElementById("bb-due").textContent   = "₹"+fmt(price-adv);
+  } else {
+    bar.classList.remove("show");
+  }
+}
+document.getElementById("f-price").addEventListener("input",updateBalanceBar);
+document.getElementById("f-advance").addEventListener("input",updateBalanceBar);
+
+// Services autocomplete
+const svcInput = document.getElementById("svc-input");
+const svcDrop  = document.getElementById("svc-dropdown");
+
+svcInput.addEventListener("input",()=>renderDropdown());
+svcInput.addEventListener("focus",()=>renderDropdown());
+document.addEventListener("mousedown",(e)=>{
+  if(!svcInput.contains(e.target)&&!svcDrop.contains(e.target))
+    svcDrop.classList.remove("open");
+});
+
+function renderDropdown(){
+  const q = svcInput.value.toLowerCase();
+  const filtered = SERVICES.filter(s=>s.toLowerCase().includes(q)&&!selectedServices.includes(s));
+  if(filtered.length===0){ svcDrop.classList.remove("open"); return; }
+  svcDrop.innerHTML = filtered.map(s=>`<div class="svc-option" onclick="addService('${s.replace(/'/g,"\\'")}')">${s}</div>`).join("");
+  svcDrop.classList.add("open");
+}
+
+function addService(s){
+  if(!selectedServices.includes(s)) selectedServices.push(s);
+  svcInput.value="";
+  svcDrop.classList.remove("open");
+  renderSelectedServices();
+}
+
+function removeService(s){
+  selectedServices = selectedServices.filter(x=>x!==s);
+  renderSelectedServices();
+}
+
+function renderSelectedServices(){
+  const el = document.getElementById("selected-services");
+  el.innerHTML = selectedServices.map(s=>`
+    <span class="svc-tag">${s}
+      <span class="svc-remove" onclick="removeService('${s.replace(/'/g,"\\'")}')" >×</span>
+    </span>`).join("");
+}
+
+// ══════════════════════════════════════════════
+//  BOOKINGS LIST
+// ══════════════════════════════════════════════
+function renderList(){
+  const q      = document.getElementById("search-input").value.toLowerCase();
+  const filter = document.getElementById("status-filter").value;
+
+  const filtered = bookings
+    .filter(b=>filter==="all"||getStatus(b.date)===filter)
+    .filter(b=>b.customerName.toLowerCase().includes(q)||(b.phone||"").includes(q))
+    .sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  const el = document.getElementById("bookings-list");
+  if(filtered.length===0){
+    el.innerHTML=`<div class="empty-state">
+      <div class="es-icon">📭</div>
+      <div style="font-size:15px;margin-bottom:5px;">No bookings found</div>
+      <button onclick="setView('add')" style="background:none;border:none;color:#B45309;cursor:pointer;text-decoration:underline;font-size:12px;font-family:inherit;">Add your first booking →</button>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = filtered.map(b=>{
+    const st = getStatus(b.date);
+    const sc = SC[st];
+    const badge = st==="completed"?"✅ DONE":st==="today"?"⭐ TODAY":"🔜 UPCOMING";
+    const balance = (parseFloat(b.totalPrice)||0)-(parseFloat(b.advance)||0);
+    const tags = (b.services||[]).map(s=>`<span class="svc-pill">${s}</span>`).join("");
+    return `
+    <div class="booking-card" style="border-left-color:${sc.badge};border-top-color:${sc.border};border-right-color:${sc.border};border-bottom-color:${sc.border};">
+      <div class="bc-inner">
+        <div class="bc-left">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:3px;flex-wrap:wrap;">
+            <span class="bc-name">${b.customerName}</span>
+            <span class="status-pill" style="background:${sc.badge};">${badge}</span>
+          </div>
+          <div class="bc-sub">${b.eventType} • ${formatDate(b.date)}${b.phone?" • 📞 "+b.phone:""}</div>
+          ${tags?`<div class="bc-tags">${tags}</div>`:""}
+          ${b.notes?`<div class="bc-notes">📝 ${b.notes}</div>`:""}
+        </div>
+        <div class="bc-right">
+          <div class="bc-price">₹${fmt(b.totalPrice)}</div>
+          <div class="bc-adv">Adv: ₹${fmt(b.advance)}</div>
+          ${balance>0?`<div class="bc-due">Due: ₹${fmt(balance)}</div>`:""}
+          <div class="bc-actions">
+            <button class="edit-btn"   onclick="startEdit(${b.id})">✏️</button>
+            <button class="delete-btn" onclick="deleteBooking(${b.id})">🗑️</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function startEdit(id){
+  const b = bookings.find(x=>x.id===id);
+  if(!b) return;
+  populateForm(b);
+  setView("add");
+}
+
+function deleteBooking(id){
+  if(!window.confirm("Delete this booking?")) return;
+  bookings = bookings.filter(b=>b.id!==id);
+  saveToStorage();
+  showToast("Booking deleted.","info");
+  renderList();
+  renderDashboard();
+}
+
+document.getElementById("search-input").addEventListener("input",renderList);
+document.getElementById("status-filter").addEventListener("change",renderList);
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+renderDashboard();
+</script>
+</body>
+</html>
